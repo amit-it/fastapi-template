@@ -1,0 +1,18 @@
+from fastapi import APIRouter, Depends, Query
+
+from app.api.deps import get_sales_service
+from app.schemas.sales import MonthlySalesRead
+from app.services.sales import SalesService
+
+router = APIRouter(prefix="/sales", tags=["sales"])
+
+
+@router.get("/monthly", response_model=list[MonthlySalesRead])
+def get_monthly_sales(
+    brand: str = Query(..., min_length=1),
+    category: str = Query(..., min_length=1),
+    region: str = Query(..., min_length=1),
+    year: int | None = Query(None, ge=2000, le=2100),
+    service: SalesService = Depends(get_sales_service),
+):
+    return service.list_monthly_sales_by_name(brand, category, region, year)
