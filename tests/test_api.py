@@ -1,13 +1,19 @@
+from contextlib import asynccontextmanager
+
 from fastapi.testclient import TestClient
 
 from app.factory import create_app
 from app.schemas.sales import MonthlySalesRead
 
 
+@asynccontextmanager
+async def _no_db_lifespan(_: object):
+    yield
+
+
 def test_health_endpoint():
     app = create_app()
-
-    app.router.on_startup.clear()
+    app.router.lifespan_context = _no_db_lifespan
 
     client = TestClient(app)
     response = client.get("/health/")
@@ -17,8 +23,7 @@ def test_health_endpoint():
 
 def test_sales_monthly_endpoint_override():
     app = create_app()
-
-    app.router.on_startup.clear()
+    app.router.lifespan_context = _no_db_lifespan
 
     def _override_service():
         class Stub:

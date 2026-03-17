@@ -1,14 +1,15 @@
 from sqlalchemy import extract, func, select
 from sqlalchemy.orm import Session
 
+from app.domain.monthly_sales import MonthlySales
 from app.models.brand import Brand
 from app.models.category import Category
 from app.models.region import Region
 from app.models.sales_data import SalesFact
-from app.schemas.sales import MonthlySalesRead
+from app.repositories.sales_interfaces import SalesRepository
 
 
-class SqlAlchemySalesRepository:
+class SqlAlchemySalesRepository(SalesRepository):
     def __init__(self, db: Session) -> None:
         self.db = db
 
@@ -18,7 +19,7 @@ class SqlAlchemySalesRepository:
         category: str,
         region: str,
         year: int | None,
-    ) -> list[MonthlySalesRead]:
+    ) -> list[MonthlySales]:
         year_col = extract("year", SalesFact.week_start).label("year")
         month_col = extract("month", SalesFact.week_start).label("month")
         stmt = (
@@ -45,7 +46,7 @@ class SqlAlchemySalesRepository:
 
         rows = self.db.execute(stmt).all()
         return [
-            MonthlySalesRead(
+            MonthlySales(
                 year=int(row.year or 0),
                 month=int(row.month or 0),
                 units_sold=int(row.units_sold or 0),

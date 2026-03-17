@@ -1,11 +1,12 @@
 from datetime import date
 
+from app.domain.monthly_sales import MonthlySales
 from app.models.brand import Brand
 from app.models.category import Category
 from app.models.region import Region
 from app.models.sales_data import SalesFact
 from app.repositories.sales import SqlAlchemySalesRepository
-from app.services.sales import SalesService
+from app.services.sales import DefaultSalesService
 
 
 def seed_sales(db):
@@ -89,7 +90,7 @@ def test_sales_repository_monthly(db_session):
 
 def test_sales_service_delegates(db_session):
     repo = SqlAlchemySalesRepository(db_session)
-    service = SalesService(repo)
+    service = DefaultSalesService(repo)
     result = service.list_monthly_sales_by_name("x", "y", "z", None)
     assert result == []
 
@@ -101,3 +102,8 @@ def test_sales_repository_filters_by_year(db_session):
     rows = repo.list_monthly_sales_by_name("Acme", "Electronics", "North", 2024)
 
     assert rows == []
+
+
+def test_monthly_sales_domain_model():
+    item = MonthlySales(year=2025, month=3, units_sold=1, revenue=2.0, profit=1.0)
+    assert item.year == 2025

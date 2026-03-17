@@ -1,11 +1,18 @@
-from app.api import deps
+from contextlib import asynccontextmanager
+
 from app.core import database
 from app.schemas.sales_data import SalesDataCreate, SalesDataRead
+
+
+@asynccontextmanager
+async def _no_db_lifespan(_: object):
+    yield
 
 
 def test_main_imports_app():
     from app import main
 
+    main.app.router.lifespan_context = _no_db_lifespan
     assert main.app is not None
 
 
@@ -30,6 +37,8 @@ def test_get_db_closes_session(monkeypatch):
 
 
 def test_deps_provide_sales_services(db_session):
+    from app.api import deps
+
     repo = deps.get_sales_repository(db_session)
     service = deps.get_sales_service(repo)
 
